@@ -70,7 +70,10 @@ export const getPlanById = async (req, res, next) => {
         const { params } = req
         const { id } = params
 
-        const plan = await Plan.findById(id).populate("exercises.rehab").lean({ virtuals: true })
+        const plan = await Plan.findById(id).populate({
+            path: "exercises.rehab",
+            select: "title file"
+        }).lean({ virtuals: true })
 
         return res.status(200).json({
             success: true,
