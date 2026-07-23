@@ -119,7 +119,16 @@ export const getUserById = async (req, res, next) => {
         const { params, decoded } = req
         const { id } = params
 
-        const user = await User.findById(id).select("-password").populate({ path: "therapist", select: "name email phone country_code dialing_code image" }).lean({ virtuals: true })
+        let query = User.findById(id).select("-password")
+
+        if (decoded.role === ROLES.ADMIN) {
+            query = query.populate({
+                path: "therapist",
+                select: "name email phone country_code dialing_code image"
+            })
+        }
+
+        const user = await query.lean({ virtuals: true })
 
         if ((!user) || (user && (decoded.role === ROLES.THERAPIST) && (!user?.therapist?.map(t => t._id?.toString()).includes(decoded.id.toString())))) {
             return res.status(404).json({
@@ -132,7 +141,7 @@ export const getUserById = async (req, res, next) => {
 
         if (decoded.role === ROLES.THERAPIST) {
 
-            const plans = await Plan.find({ therapist: decoded.id, user: user._id, active: true }).lean({ virtuals: true })
+            const plans = await Plan.find({ therapist: decoded.id, user: user._id, active: true }).select("name notes status createdAt").lean({ virtuals: true })
 
             const completed_exercises = plans.filter(plan => plan?.status === PLAN_STATUS.COMPLETED).length
 
@@ -142,6 +151,7 @@ export const getUserById = async (req, res, next) => {
 
             payload.plans = plans
             payload.progress = progress
+            delete payload.therapist
 
         }
 

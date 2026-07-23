@@ -399,7 +399,6 @@ export const CREATE_REHAB_VALIDATOR = Joi.object({
 })
 
 export const CREATE_PLAN_VALIDATOR = Joi.object({
-
     user: Joi.string()
         .required()
         .custom((value, helpers) => {
@@ -436,35 +435,40 @@ export const CREATE_PLAN_VALIDATOR = Joi.object({
             'string.max': 'Notes cannot exceed 1000 characters.'
         }),
 
-    frequency: Joi.number()
-        .integer()
+    exercises: Joi.array()
+        .items(
+            Joi.object({
+                rehab: Joi.string()
+                    .required()
+                    .custom((value, helpers) => {
+                        if (!mongoose.Types.ObjectId.isValid(value)) {
+                            return helpers.message(`Invalid Rehab ID: ${value}`)
+                        }
+                        return value
+                    })
+                    .messages({
+                        'any.required': 'Rehab ID is required.',
+                        'string.empty': 'Rehab ID cannot be empty.'
+                    }),
+                notes: Joi.string()
+                    .trim()
+                    .min(5)
+                    .max(1000)
+                    .required()
+                    .messages({
+                        'any.required': 'Exercise notes are required.',
+                        'string.empty': 'Exercise notes cannot be empty.',
+                        'string.min': 'Exercise notes must be at least 5 characters long.',
+                        'string.max': 'Exercise notes cannot exceed 1000 characters.'
+                    })
+            })
+        )
         .min(1)
         .required()
         .messages({
-            'any.required': 'Frequency is required.',
-            'number.base': 'Frequency must be a number.',
-            'number.integer': 'Frequency must be an integer.',
-            'number.min': 'Frequency must be at least 1.'
-        }),
-
-    reps: Joi.number()
-        .integer()
-        .min(1)
-        .required()
-        .messages({
-            'any.required': 'Reps are required.',
-            'number.base': 'Reps must be a number.',
-            'number.integer': 'Reps must be an integer.',
-            'number.min': 'Reps must be at least 1.'
-        }),
-
-    weight: Joi.number()
-        .min(1)
-        .required()
-        .messages({
-            'any.required': 'Weight is required.',
-            'number.base': 'Weight must be a number.',
-            'number.min': 'Weight must be at least 1.'
+            'any.required': 'Exercises are required.',
+            'array.min': 'At least one exercise must be added to the plan.',
+            'array.base': 'Exercises must be an array.'
         }),
 
 })
