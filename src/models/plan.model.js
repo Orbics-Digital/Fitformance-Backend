@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
 import { ENUM_PLAN_STATUS, PLAN_STATUS } from '../utils/index.js'
 
 dotenv.config()
@@ -23,18 +24,17 @@ const plan_schema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    frequency: {
-        type: Number,
-        required: true,
-    },
-    reps: {
-        type: Number,
-        required: true,
-    },
-    weight: {
-        type: Number,
-        required: true,
-    },
+    exercises: [{
+        rehab: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Rehab',
+            required: true
+        },
+        notes: {
+            type: String,
+            required: true
+        }
+    }],
     status: {
         type: String,
         enum: ENUM_PLAN_STATUS,
@@ -50,5 +50,7 @@ const plan_schema = new mongoose.Schema({
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
 })
+
+plan_schema.plugin(mongooseLeanVirtuals)
 
 export default mongoose.model('Plan', plan_schema)

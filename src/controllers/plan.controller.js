@@ -70,7 +70,7 @@ export const getPlanById = async (req, res, next) => {
         const { params } = req
         const { id } = params
 
-        const plan = await Plan.findById(id)
+        const plan = await Plan.findById(id).populate("exercises.rehab").lean({ virtuals: true })
 
         return res.status(200).json({
             success: true,
@@ -91,7 +91,7 @@ export const addPlan = async (req, res, next) => {
 
     try {
         const { body, decoded } = req
-        const { user: user_id, name, notes, frequency, reps, weight } = body
+        const { user: user_id, name, notes, exercises } = body
         const therapist = decoded.id
 
         const user = await User.findById(user_id).session(session)
@@ -118,9 +118,7 @@ export const addPlan = async (req, res, next) => {
             therapist,
             name,
             notes,
-            frequency,
-            reps,
-            weight
+            exercises
         })
         await plan.save({ session })
 
