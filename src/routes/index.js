@@ -11,6 +11,8 @@ import notification_routes from './notification.route.js';
 import package_routes from './package.route.js';
 import plan_routes from './plan.route.js';
 import exercise_routes from './exercise.route.js';
+import library_routes from './library.route.js';
+import protocol_routes from './protocol.route.js';
 import reminder_routes from './reminder.route.js';
 import user_routes from './user.route.js';
 
@@ -25,5 +27,7 @@ router.use('/notification', notification_routes)
 router.use('/feedback', feedback_routes)
 router.use('/general', general_routes)
 router.use('/category', category_routes)
+router.use('/library', library_routes)
+router.use('/protocol', protocol_routes)
 
 export default router

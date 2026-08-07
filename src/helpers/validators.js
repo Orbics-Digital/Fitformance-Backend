@@ -632,3 +632,170 @@ export const UPDATE_CATEGORY_VALIDATOR = Joi.object({
             'string.max': 'Name cannot exceed 100 characters.'
         }),
 })
+
+const objectId = (label) =>
+    Joi.string()
+        .required()
+        .custom((value, helpers) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                return helpers.message(`Invalid ${label}: ${value}`)
+            }
+            return value
+        })
+        .messages({
+            'any.required': `${label} is required.`,
+            'string.empty': `${label} cannot be empty.`,
+        })
+
+const nameField = Joi.string().min(2).max(100)
+    .required()
+    .messages({
+        'any.required': 'Name is required.',
+        'string.empty': 'Name cannot be empty.',
+        'string.min': 'Name must be at least 2 characters long.',
+        'string.max': 'Name cannot exceed 100 characters.',
+    })
+
+const optionalNameField = Joi.string().min(2).max(100)
+    .optional()
+    .messages({
+        'string.empty': 'Name cannot be empty.',
+        'string.min': 'Name must be at least 2 characters long.',
+        'string.max': 'Name cannot exceed 100 characters.',
+    })
+
+const exerciseIdsField = Joi.array()
+    .items(
+        Joi.string()
+            .custom((value, helpers) => {
+                if (!mongoose.Types.ObjectId.isValid(value)) {
+                    return helpers.message(`Invalid exercise ID: ${value}`)
+                }
+                return value
+            })
+    )
+    .required()
+    .messages({
+        'any.required': 'Exercise IDs are required.',
+        'array.base': 'Exercise IDs must be an array.',
+    })
+
+// Library
+export const CREATE_LIBRARY_VALIDATOR = Joi.object({
+    name: nameField,
+})
+
+export const UPDATE_LIBRARY_VALIDATOR = Joi.object({
+    name: nameField,
+})
+
+export const CREATE_MUSCLE_GROUP_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    name: nameField,
+})
+
+export const UPDATE_MUSCLE_GROUP_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    muscle_group_id: objectId('Muscle group ID'),
+    name: nameField,
+})
+
+export const CREATE_LIBRARY_CATEGORY_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    muscle_group_id: objectId('Muscle group ID'),
+    name: nameField,
+})
+
+export const UPDATE_LIBRARY_CATEGORY_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    muscle_group_id: objectId('Muscle group ID'),
+    category_id: objectId('Category ID'),
+    name: nameField,
+})
+
+export const SET_LIBRARY_EXERCISES_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    muscle_group_id: objectId('Muscle group ID'),
+    category_id: objectId('Category ID'),
+    exercise_ids: exerciseIdsField,
+})
+
+// Protocol
+export const CREATE_PROTOCOL_VALIDATOR = Joi.object({
+    name: nameField,
+})
+
+export const UPDATE_PROTOCOL_VALIDATOR = Joi.object({
+    name: nameField,
+})
+
+export const CREATE_PROTOCOL_CONDITION_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    name: nameField,
+    type: Joi.string().min(2).max(100)
+        .required()
+        .messages({
+            'any.required': 'Type is required.',
+            'string.empty': 'Type cannot be empty.',
+            'string.min': 'Type must be at least 2 characters long.',
+            'string.max': 'Type cannot exceed 100 characters.',
+        }),
+})
+
+export const UPDATE_PROTOCOL_CONDITION_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    condition_id: objectId('Condition ID'),
+    name: optionalNameField,
+    type: Joi.string().min(2).max(100)
+        .optional()
+        .messages({
+            'string.empty': 'Type cannot be empty.',
+            'string.min': 'Type must be at least 2 characters long.',
+            'string.max': 'Type cannot exceed 100 characters.',
+        }),
+}).or('name', 'type')
+
+export const CREATE_PROTOCOL_WEEK_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    condition_id: objectId('Condition ID'),
+    label: Joi.string().min(1).max(100)
+        .required()
+        .messages({
+            'any.required': 'Label is required.',
+            'string.empty': 'Label cannot be empty.',
+            'string.min': 'Label must be at least 1 character long.',
+            'string.max': 'Label cannot exceed 100 characters.',
+        }),
+    sub: Joi.string().max(200)
+        .optional()
+        .allow('')
+        .messages({
+            'string.max': 'Sub cannot exceed 200 characters.',
+        }),
+})
+
+export const UPDATE_PROTOCOL_WEEK_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    condition_id: objectId('Condition ID'),
+    week_id: objectId('Week ID'),
+    label: Joi.string().min(1).max(100)
+        .optional()
+        .messages({
+            'string.empty': 'Label cannot be empty.',
+            'string.min': 'Label must be at least 1 character long.',
+            'string.max': 'Label cannot exceed 100 characters.',
+        }),
+    sub: Joi.string().max(200)
+        .optional()
+        .allow('')
+        .messages({
+            'string.max': 'Sub cannot exceed 200 characters.',
+        }),
+}).or('label', 'sub')
+
+export const SET_PROTOCOL_WEEK_EXERCISES_VALIDATOR = Joi.object({
+    region_id: objectId('Region ID'),
+    condition_id: objectId('Condition ID'),
+    week_id: objectId('Week ID'),
+    exercise_ids: exerciseIdsField,
+})
