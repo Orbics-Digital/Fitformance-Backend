@@ -10,4 +10,6 @@ logs/
 .env.*.local
 
 # Uploads folder
-uploads/
+# uploads/
+
+src/config/fitformance.json

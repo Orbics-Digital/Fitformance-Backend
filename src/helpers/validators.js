@@ -367,35 +367,6 @@ export const CREATE_REHAB_VALIDATOR = Joi.object({
             'string.min': 'Description must be at least 5 characters long.',
             'string.max': 'Description cannot exceed 1000 characters.',
         }),
-
-    type: Joi.string()
-        .valid(...ENUM_REHAB_TYPES)
-        .required()
-        .messages({
-            'any.required': 'Type is required.',
-            'string.empty': 'Type cannot be empty.',
-            'any.only': `Type must be one of: ${ENUM_REHAB_TYPES.join(', ')}`
-        }),
-
-    category: Joi.string()
-        .required()
-        .custom((value, helpers) => {
-            if (!mongoose.Types.ObjectId.isValid(value)) {
-                return helpers.message(`Invalid category ID: ${value}`)
-            }
-            return value
-        })
-        .messages({
-            'any.required': 'Category ID is required.',
-            'string.empty': 'Category ID cannot be empty.'
-        }),
-
-    is_premium: Joi.boolean()
-        .optional()
-        .messages({
-            'boolean.base': 'is_premium must be a boolean value.'
-        }),
-
 })
 
 export const CREATE_PLAN_VALIDATOR = Joi.object({

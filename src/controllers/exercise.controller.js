@@ -1,23 +1,15 @@
 import logger from "../config/logger.js"
 import { buildPaginationResponse, getPagination } from "../helpers/pagination.js"
-import Rehab from '../models/rehab.model.js'
+import Exercise from '../models/exercise.model.js'
 import { dateRangeFilter, REHAB_TYPES, searchRegex } from "../utils/index.js"
 
-export const getRehabs = async (req, res, next) => {
+export const getExercises = async (req, res, next) => {
     try {
         const { query } = req
-        const { type, search, from, to, category } = query
+        const { search, from, to } = query
         const { skip, limit, page, page_size } = getPagination(query)
 
         let filter = {}
-
-        if (type) {
-            filter.type = type
-        }
-
-        if (category) {
-            filter.category = category
-        }
 
         if (search) {
             filter.title = searchRegex(search)
@@ -27,69 +19,72 @@ export const getRehabs = async (req, res, next) => {
             filter.createdAt = dateRangeFilter(from, to)
         }
 
-        const rehabs = await Rehab.find(filter)
-            .populate("category", "name")
+        const rehabs = await Exercise.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
 
-        const total = await Rehab.countDocuments(filter)
+        const total = await Exercise.countDocuments(filter)
 
-        logger.info(`Rehabs listing fetched`)
+        logger.info(`Exercises listing fetched`)
 
         return res.status(200).json({
             success: true,
-            message: 'Rehabs fetched successfully.',
+            message: 'Exercises fetched successfully.',
             ...buildPaginationResponse(rehabs, total, page, page_size),
         })
 
     } catch (error) {
-        logger.error(`Get Rehabs Error: ${error.message}`)
+        logger.error(`Get Exercises Error: ${error.message}`)
         next(error)
     }
 }
 
-export const getRehabById = async (req, res, next) => {
+export const getExerciseById = async (req, res, next) => {
     try {
         const { params } = req
         const { id } = params
 
-        const rehab = await Rehab.findById(id).populate("category", "name")
+        const rehab = await Exercise.findById(id)
 
         return res.status(200).json({
             success: true,
-            message: 'Rehab fetched successfully.',
+            message: 'Exercise fetched successfully.',
             data: rehab
         })
 
     } catch (error) {
-        logger.error(`Get Rehab by ID Error: ${error.message}`)
+        logger.error(`Get Exercise by ID Error: ${error.message}`)
         next(error)
     }
 }
 
-export const addRehab = async (req, res, next) => {
+export const addExercise = async (req, res, next) => {
     try {
 
         const { body, decoded, file } = req
-        const { title, description, type, category, is_premium } = body
+        const { title, description } = body
 
-        const rehab = new Rehab({
+        if (!file) {
+            return res.status(400).json({
+                success: false,
+                message: 'File is required.',
+            })
+        }
+
+        const rehab = new Exercise({
             title,
             description: description.trim(),
-            type,
-            category,
             file: file?.path || null,
-            is_premium: is_premium || false,
         })
 
         await rehab.save()
 
-        logger.info(`Rehab created by user ${decoded.id}`)
+        logger.info(`Exercise created by user ${decoded.id}`)
 
         return res.status(201).json({
             success: true,
-            message: 'Rehab created successfully.',
+            message: 'Exercise created successfully.',
             data: rehab,
         })
 

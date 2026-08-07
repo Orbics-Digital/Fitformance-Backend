@@ -5,7 +5,7 @@ import { ENUM_REHAB_TYPES, getFileExtension, LIBRARY, PROTOCOLS, REHAB_TYPES } f
 
 dotenv.config()
 
-const rehab_schema = new mongoose.Schema({
+const exercise_schema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -13,20 +13,6 @@ const rehab_schema = new mongoose.Schema({
     description: {
         type: String,
         required: true,
-    },
-    type: {
-        type: String,
-        required: true,
-        enum: ENUM_REHAB_TYPES,
-    },
-    category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
-        required: true
-    },
-    is_premium: {
-        type: Boolean,
-        default: false,
     },
     file: {
         type: String,
@@ -43,7 +29,7 @@ const rehab_schema = new mongoose.Schema({
     toObject: { virtuals: true },
 })
 
-rehab_schema.virtual('file_url').get(function () {
+exercise_schema.virtual('file_url').get(function () {
 
     if (!this.file) {
         return null
@@ -57,7 +43,7 @@ rehab_schema.virtual('file_url').get(function () {
 
 })
 
-rehab_schema.virtual('file_type').get(function () {
+exercise_schema.virtual('file_type').get(function () {
 
     if (!this.file) {
         return null
@@ -69,6 +55,6 @@ rehab_schema.virtual('file_type').get(function () {
 
 })
 
-rehab_schema.plugin(mongooseLeanVirtuals)
+exercise_schema.plugin(mongooseLeanVirtuals)
 
-export default mongoose.model('Rehab', rehab_schema)
+export default mongoose.model('Exercise', exercise_schema)

@@ -10,13 +10,13 @@ import general_routes from './general.route.js';
 import notification_routes from './notification.route.js';
 import package_routes from './package.route.js';
 import plan_routes from './plan.route.js';
-import rehab_routes from './rehab.route.js';
+import exercise_routes from './exercise.route.js';
 import reminder_routes from './reminder.route.js';
 import user_routes from './user.route.js';
 
 router.use('/auth', auth_routes)
 router.use('/user', user_routes)
-router.use('/rehab', rehab_routes)
+router.use('/rehab', exercise_routes)
 router.use('/plan', plan_routes)
 router.use('/reminder', reminder_routes)
 router.use('/conversation', conversation_routes)

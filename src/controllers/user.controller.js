@@ -4,12 +4,12 @@ import { removeFiles } from '../helpers/folder.js'
 import { sendNotification } from '../helpers/notification.js'
 import { buildPaginationResponse, getPagination } from '../helpers/pagination.js'
 import Conversation from '../models/conversation.model.js'
+import Exercise from '../models/exercise.model.js'
 import Plan from '../models/plan.model.js'
-import Rehab from '../models/rehab.model.js'
 import User from '../models/user.model.js'
 import { calculateProgress } from '../services/excercise.service.js'
 import { fetchDetails, fetchTrending, searchMulti } from '../services/tmdb.service.js'
-import { CONVERSATION_TYPES, dateRangeFilter, PLAN_STATUS, REHAB_TYPES, ROLES, searchRegex } from '../utils/index.js'
+import { CONVERSATION_TYPES, dateRangeFilter, PLAN_STATUS, ROLES, searchRegex } from '../utils/index.js'
 
 export const getHome = async (req, res, next) => {
 
@@ -18,8 +18,8 @@ export const getHome = async (req, res, next) => {
         const { decoded } = req
 
         const [protocols, library, plans, progress] = await Promise.all([
-            Rehab.find({ type: REHAB_TYPES.PROTOCOL }).sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
-            Rehab.find({ type: REHAB_TYPES.LIBRARY }).sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
+            Exercise.find().sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
+            Exercise.find().sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
             Plan.find({ user: decoded.id, active: true }).lean({ virtuals: true }),
             calculateProgress(decoded.id)
         ])
