@@ -27,7 +27,7 @@ const plan_schema = new mongoose.Schema({
     exercises: [{
         rehab: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Rehab',
+            ref: 'Exercise',
             required: true
         },
         notes: {
