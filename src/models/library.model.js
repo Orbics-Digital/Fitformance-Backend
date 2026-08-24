@@ -28,6 +28,10 @@ const library_schema = new mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    premium: {
+        type: Boolean,
+        default: false,
+    },
     muscle_groups: [muscle_group_schema],
 }, {
     timestamps: true,

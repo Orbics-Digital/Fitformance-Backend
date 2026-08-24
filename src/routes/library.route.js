@@ -6,6 +6,7 @@ import {
     getLibraries,
     getLibraryById,
     setLibraryCategoryExercises,
+    togglePremium,
     toggleStatus,
     updateLibrary,
     updateLibraryCategory,
@@ -34,6 +35,8 @@ router.post('/create', AuthVerifier, validator(CREATE_LIBRARY_VALIDATOR), addLib
 router.patch('/update/:id', AuthVerifier, validator(UPDATE_LIBRARY_VALIDATOR), updateLibrary)
 
 router.patch('/toggle-status/:id', AuthVerifier, toggleStatus)
+
+router.patch('/toggle-premium/:id', AuthVerifier, togglePremium)
 
 router.post('/muscle-group/create', AuthVerifier, validator(CREATE_MUSCLE_GROUP_VALIDATOR), addMuscleGroup)
 

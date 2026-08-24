@@ -6,6 +6,7 @@ import {
     getProtocolById,
     getProtocols,
     setWeekExercises,
+    togglePremium,
     toggleStatus,
     updateCondition,
     updateProtocol,
@@ -34,6 +35,8 @@ router.post('/create', AuthVerifier, validator(CREATE_PROTOCOL_VALIDATOR), addPr
 router.patch('/update/:id', AuthVerifier, validator(UPDATE_PROTOCOL_VALIDATOR), updateProtocol)
 
 router.patch('/toggle-status/:id', AuthVerifier, toggleStatus)
+
+router.patch('/toggle-premium/:id', AuthVerifier, togglePremium)
 
 router.post('/condition/create', AuthVerifier, validator(CREATE_PROTOCOL_CONDITION_VALIDATOR), addCondition)
 

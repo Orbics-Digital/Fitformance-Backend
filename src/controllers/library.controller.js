@@ -183,6 +183,35 @@ export const toggleStatus = async (req, res, next) => {
     }
 }
 
+export const togglePremium = async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const library = await Library.findById(id)
+
+        if (!library) {
+            return res.status(404).json({
+                success: false,
+                message: 'Library not found.',
+            })
+        }
+
+        library.premium = !library.premium
+        await library.save()
+
+        logger.info(`Library premium toggled: ${library.name} → ${library.premium ? 'PREMIUM' : 'STANDARD'}`)
+
+        return res.status(200).json({
+            success: true,
+            message: `Library ${library.premium ? 'marked as premium' : 'removed from premium'} successfully.`,
+            data: library,
+        })
+    } catch (error) {
+        logger.error(`Toggle Library Premium Error: ${error.message}`)
+        next(error)
+    }
+}
+
 export const addMuscleGroup = async (req, res, next) => {
     try {
         const { body, decoded } = req

@@ -36,6 +36,10 @@ const protocol_schema = new mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    premium: {
+        type: Boolean,
+        default: false,
+    },
     conditions: [protocol_condition_schema],
 }, {
     timestamps: true,

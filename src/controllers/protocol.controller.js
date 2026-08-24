@@ -183,6 +183,35 @@ export const toggleStatus = async (req, res, next) => {
     }
 }
 
+export const togglePremium = async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const protocol = await Protocol.findById(id)
+
+        if (!protocol) {
+            return res.status(404).json({
+                success: false,
+                message: 'Protocol not found.',
+            })
+        }
+
+        protocol.premium = !protocol.premium
+        await protocol.save()
+
+        logger.info(`Protocol premium toggled: ${protocol.name} → ${protocol.premium ? 'PREMIUM' : 'STANDARD'}`)
+
+        return res.status(200).json({
+            success: true,
+            message: `Protocol ${protocol.premium ? 'marked as premium' : 'removed from premium'} successfully.`,
+            data: protocol,
+        })
+    } catch (error) {
+        logger.error(`Toggle Protocol Premium Error: ${error.message}`)
+        next(error)
+    }
+}
+
 export const addCondition = async (req, res, next) => {
     try {
         const { body, decoded } = req
