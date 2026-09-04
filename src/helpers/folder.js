@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import logger from '../config/logger.js'
 
 export const makeFolders = () => {
 
