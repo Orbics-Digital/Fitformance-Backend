@@ -1,6 +1,10 @@
 import logger from "../config/logger.js"
+import { removeFiles } from "../helpers/folder.js"
 import { buildPaginationResponse, getPagination } from "../helpers/pagination.js"
 import Exercise from '../models/exercise.model.js'
+import Library from '../models/library.model.js'
+import Plan from '../models/plan.model.js'
+import Protocol from '../models/protocol.model.js'
 import { dateRangeFilter, REHAB_TYPES, searchRegex } from "../utils/index.js"
 
 export const getExercises = async (req, res, next) => {
@@ -89,6 +93,55 @@ export const addExercise = async (req, res, next) => {
         })
 
     } catch (error) {
+        next(error)
+    }
+}
+
+export const deleteExercise = async (req, res, next) => {
+    try {
+        const { params, decoded } = req
+        const { id } = params
+
+        const rehab = await Exercise.findById(id)
+
+        if (!rehab) {
+            return res.status(404).json({
+                success: false,
+                message: 'Exercise not found.',
+            })
+        }
+
+        if (rehab.file) {
+            removeFiles(rehab.file)
+        }
+
+        await Exercise.findByIdAndDelete(id)
+
+        await Library.updateMany(
+            { "muscle_groups.categories.exercise_ids": id },
+            { $pull: { "muscle_groups.$[].categories.$[].exercise_ids": id } }
+        )
+
+        await Protocol.updateMany(
+            { "conditions.weeks.exercise_ids": id },
+            { $pull: { "conditions.$[].weeks.$[].exercise_ids": id } }
+        )
+
+        await Plan.updateMany(
+            { "exercises.rehab": id },
+            { $pull: { exercises: { rehab: id } } }
+        )
+
+        logger.info(`Exercise ${id} deleted by user ${decoded?.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Exercise deleted successfully.',
+            data: rehab,
+        })
+
+    } catch (error) {
+        logger.error(`Delete Exercise Error: ${error.message}`)
         next(error)
     }
 }
