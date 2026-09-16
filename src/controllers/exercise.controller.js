@@ -27,6 +27,7 @@ export const getExercises = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
+            .lean({ virtuals: true })
 
         const total = await Exercise.countDocuments(filter)
 

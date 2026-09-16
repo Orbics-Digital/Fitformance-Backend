@@ -141,7 +141,12 @@ export const getUserById = async (req, res, next) => {
 
         if (decoded.role === ROLES.THERAPIST) {
 
-            const plans = await Plan.find({ therapist: decoded.id, user: user._id, active: true }).select("name notes status createdAt").lean({ virtuals: true })
+            const plans = await Plan.find({ user: user._id, active: true })
+                .populate({ path: "therapist", select: "name" })
+                .populate({ path: "exercises.rehab", select: "title file" })
+                .select("name notes status createdAt therapist exercises")
+                .sort({ createdAt: -1 })
+                .lean({ virtuals: true })
 
             const completed_exercises = plans.filter(plan => plan?.status === PLAN_STATUS.COMPLETED).length
 

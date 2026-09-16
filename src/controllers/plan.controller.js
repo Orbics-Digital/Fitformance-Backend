@@ -31,7 +31,8 @@ export const getPlans = async (req, res, next) => {
             filter.active = true
 
         } else if (decoded.role === ROLES.THERAPIST) {
-            filter.therapist = decoded.id
+            const clients = await User.find({ therapist: decoded.id }).select("_id")
+            filter.user = { $in: clients.map((client) => client._id) }
             filter.active = true
         }
 
@@ -67,13 +68,38 @@ export const getPlans = async (req, res, next) => {
 export const getPlanById = async (req, res, next) => {
     try {
 
-        const { params } = req
+        const { params, decoded } = req
         const { id } = params
 
-        const plan = await Plan.findById(id).populate({
-            path: "exercises.rehab",
-            select: "title file"
-        }).lean({ virtuals: true })
+        const plan = await Plan.findById(id)
+            .populate({
+                path: "exercises.rehab",
+                select: "title file description"
+            })
+            .populate({ path: "therapist", select: "name" })
+            .populate({ path: "user", select: "name therapist" })
+            .lean({ virtuals: true })
+
+        if (!plan) {
+            return res.status(404).json({
+                success: false,
+                message: "Plan not found"
+            })
+        }
+
+        if (decoded.role === ROLES.THERAPIST) {
+            const therapistId = decoded.id.toString()
+            const ownerId = (plan.therapist?._id || plan.therapist)?.toString()
+            const assignedIds = (plan.user?.therapist || []).map((item) => (item?._id || item)?.toString())
+            const canView = ownerId === therapistId || assignedIds.includes(therapistId)
+
+            if (!canView) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Not authorized to view this plan"
+                })
+            }
+        }
 
         return res.status(200).json({
             success: true,
