@@ -2,7 +2,7 @@ import logger from "../config/logger.js"
 import { buildPaginationResponse, getPagination } from "../helpers/pagination.js"
 import Exercise from "../models/exercise.model.js"
 import Library from "../models/library.model.js"
-import { dateRangeFilter, searchRegex } from "../utils/index.js"
+import { dateRangeFilter, ROLES, searchRegex } from "../utils/index.js"
 
 const findMuscleGroup = (library, muscle_group_id) =>
     library.muscle_groups.id(muscle_group_id)
@@ -20,7 +20,7 @@ const validateExerciseIds = async (exercise_ids) => {
 
 export const getLibraries = async (req, res, next) => {
     try {
-        const { query } = req
+        const { query, decoded } = req
         const { search, from, to, active } = query
         const { skip, limit, page, page_size } = getPagination(query)
 
@@ -30,7 +30,9 @@ export const getLibraries = async (req, res, next) => {
             filter.name = searchRegex(search)
         }
 
-        if (active != null) {
+        if (decoded?.role === ROLES.THERAPIST) {
+            filter.active = { $ne: false }
+        } else if (active != null) {
             filter.active = active
         }
 
@@ -61,10 +63,11 @@ export const getLibraries = async (req, res, next) => {
 export const getLibraryById = async (req, res, next) => {
     try {
         const { id } = req.params
+        const { decoded } = req
 
         const library = await Library.findById(id)
 
-        if (!library) {
+        if (!library || (decoded?.role === ROLES.THERAPIST && library.active === false)) {
             return res.status(404).json({
                 success: false,
                 message: 'Library not found.',

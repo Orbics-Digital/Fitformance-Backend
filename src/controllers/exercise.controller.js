@@ -5,15 +5,19 @@ import Exercise from '../models/exercise.model.js'
 import Library from '../models/library.model.js'
 import Plan from '../models/plan.model.js'
 import Protocol from '../models/protocol.model.js'
-import { dateRangeFilter, REHAB_TYPES, searchRegex } from "../utils/index.js"
+import { dateRangeFilter, REHAB_TYPES, ROLES, searchRegex } from "../utils/index.js"
 
 export const getExercises = async (req, res, next) => {
     try {
-        const { query } = req
+        const { query, decoded } = req
         const { search, from, to } = query
         const { skip, limit, page, page_size } = getPagination(query)
 
         let filter = {}
+
+        if (decoded?.role === ROLES.THERAPIST) {
+            filter.active = { $ne: false }
+        }
 
         if (search) {
             filter.title = searchRegex(search)
@@ -47,10 +51,17 @@ export const getExercises = async (req, res, next) => {
 
 export const getExerciseById = async (req, res, next) => {
     try {
-        const { params } = req
+        const { params, decoded } = req
         const { id } = params
 
         const rehab = await Exercise.findById(id)
+
+        if (!rehab || (decoded?.role === ROLES.THERAPIST && rehab.active === false)) {
+            return res.status(404).json({
+                success: false,
+                message: 'Exercise not found.',
+            })
+        }
 
         return res.status(200).json({
             success: true,
