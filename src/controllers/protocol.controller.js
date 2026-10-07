@@ -30,7 +30,7 @@ export const getProtocols = async (req, res, next) => {
             filter.name = searchRegex(search)
         }
 
-        if (decoded?.role === ROLES.THERAPIST) {
+        if (decoded?.role === ROLES.THERAPIST || decoded?.role === ROLES.USER) {
             filter.active = { $ne: false }
         } else if (active != null) {
             filter.active = active
@@ -67,7 +67,7 @@ export const getProtocolById = async (req, res, next) => {
 
         const protocol = await Protocol.findById(id)
 
-        if (!protocol || (decoded?.role === ROLES.THERAPIST && protocol.active === false)) {
+        if (!protocol || ((decoded?.role === ROLES.THERAPIST || decoded?.role === ROLES.USER) && protocol.active === false)) {
             return res.status(404).json({
                 success: false,
                 message: 'Protocol not found.',
