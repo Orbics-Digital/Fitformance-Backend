@@ -186,6 +186,10 @@ export const getMyProfile = async (req, res, next) => {
 
         const user = await User.findById(decoded.id)
             .select("-password")
+            .populate({
+                path: "therapist",
+                select: "name image",
+            })
             .lean({ virtuals: true })
 
         if (!user) {
