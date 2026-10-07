@@ -26,8 +26,8 @@ export const webhook = async (req, res) => {
 
         if (user) {
 
-            sendNotification({
-                save: false,
+            await sendNotification({
+                save: true,
                 title: 'Payment Successful',
                 message: `Your payment of $${(session.amount_total / 100).toFixed(2)} was successful!`,
                 user_ids: [user._id],
@@ -154,8 +154,8 @@ export const subscribe = async (id, user_id) => {
                 quantity: 1
             }
         ],
-        success_url: "https://www.google.com/",
-        cancel_url: "https://www.google.com/",
+        success_url: `${process.env.SUBSCRIPTION_REDIRECT_URL || "https://fitformance.app/subscription"}/success`,
+        cancel_url: `${process.env.SUBSCRIPTION_REDIRECT_URL || "https://fitformance.app/subscription"}/cancel`,
     })
 
     return {

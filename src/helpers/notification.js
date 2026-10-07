@@ -52,13 +52,17 @@ export const sendNotification = async ({ title, message, user_ids = [], metadata
                     logger.info(`Sending push notification to user ${user._id} with token ${token}`)
                     logger.info(`Notification payload: title="${title}", message="${message}", metadata=${JSON.stringify(metadata)}`)
 
+                    const data = Object.fromEntries(
+                        Object.entries(metadata || {}).map(([key, value]) => [key, String(value)])
+                    )
+
                     const response = await firebase.messaging().send({
                         token,
                         notification: {
                             title,
                             body: message
                         },
-                        data: metadata || {}
+                        data
                     })
 
                     console.log('✅ Notification sent:', response)
