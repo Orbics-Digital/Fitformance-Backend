@@ -169,6 +169,11 @@ export const login = async (req, res, next) => {
 
         logger.info(`User logged in: ${email}`)
 
+        await user.populate({
+            path: "therapist",
+            select: "name image",
+        })
+
         let has_subscription = false
         try {
             has_subscription = Boolean(await getActiveSubscription(user._id))
