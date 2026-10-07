@@ -17,10 +17,16 @@ export const getHome = async (req, res, next) => {
 
         const { decoded } = req
 
-        const [protocols, library, plans, progress] = await Promise.all([
-            Exercise.find().sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
-            Exercise.find().sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
-            Plan.find({ user: decoded.id, active: true }).lean({ virtuals: true }),
+        const [library, latest_plan, progress] = await Promise.all([
+            Exercise.find({ active: { $ne: false } }).sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
+            Plan.findOne({ user: decoded.id, active: true })
+                .sort({ createdAt: -1 })
+                .populate({
+                    path: "exercises.rehab",
+                    select: "title file description"
+                })
+                .populate({ path: "therapist", select: "name" })
+                .lean({ virtuals: true }),
             calculateProgress(decoded.id)
         ])
 
@@ -29,7 +35,7 @@ export const getHome = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: "Home listing fetched successfully.",
-            data: { progress, library, protocols }
+            data: { progress, library, latest_plan }
         })
 
     } catch (error) {
