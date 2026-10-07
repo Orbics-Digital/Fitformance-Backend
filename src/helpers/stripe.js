@@ -262,7 +262,7 @@ export const getActiveSubscription = async (id) => {
     const user = await User.findById(id)
 
     if (!user) throw new Error('User not found')
-    if (!user.stripe_customer_id) throw new Error('User does not have a Stripe customer ID')
+    if (!user.stripe_customer_id) return null
 
     const subscriptions = await stripe.subscriptions.list({
         customer: user.stripe_customer_id,

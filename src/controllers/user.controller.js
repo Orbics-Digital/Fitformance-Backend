@@ -1,4 +1,5 @@
 import logger from '../config/logger.js'
+import { getActiveSubscription } from '../helpers/stripe.js'
 import { compareData } from '../helpers/encryption.js'
 import { removeFiles } from '../helpers/folder.js'
 import { sendNotification } from '../helpers/notification.js'
@@ -196,10 +197,20 @@ export const getMyProfile = async (req, res, next) => {
 
         logger.info(`Profile fetched for user: ${user.email}`)
 
+        let has_subscription = false
+        try {
+            has_subscription = Boolean(await getActiveSubscription(decoded.id))
+        } catch (error) {
+            logger.error(`Active subscription check failed: ${error.message}`)
+        }
+
         return res.status(200).json({
             success: true,
             message: "Profile fetched successfully.",
-            data: user
+            data: {
+                ...user,
+                has_subscription,
+            }
         })
 
     } catch (error) {
