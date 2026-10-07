@@ -685,6 +685,35 @@ export const getMediaById = async (req, res, next) => {
     }
 }
 
+export const registerDevice = async (req, res, next) => {
+    try {
+        const { decoded, body } = req
+        const device_id = body?.device_id
+
+        const user = await User.findById(decoded.id)
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            })
+        }
+
+        if (device_id && !user.device_ids.includes(device_id)) {
+            user.device_ids.push(device_id)
+            await user.save()
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Device registered'
+        })
+    } catch (error) {
+        logger.error(`Register Device Error: ${error.message}`)
+        next(error)
+    }
+}
+
 export const search = async (req, res, next) => {
     try {
 
