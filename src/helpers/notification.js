@@ -55,15 +55,46 @@ export const sendNotification = async ({ title, message, user_ids = [], metadata
                     const data = Object.fromEntries(
                         Object.entries(metadata || {}).map(([key, value]) => [key, String(value)])
                     )
+                    const isPayment = data.type === 'payment'
 
-                    const response = await firebase.messaging().send({
-                        token,
-                        notification: {
-                            title,
-                            body: message
-                        },
-                        data
-                    })
+                    const payload = isPayment
+                        ? {
+                            token,
+                            data: {
+                                ...data,
+                                title,
+                                body: message,
+                            },
+                            android: {
+                                priority: 'high',
+                            },
+                            apns: {
+                                headers: {
+                                    'apns-priority': '10',
+                                    'apns-push-type': 'alert',
+                                },
+                                payload: {
+                                    aps: {
+                                        alert: {
+                                            title,
+                                            body: message,
+                                        },
+                                        sound: 'default',
+                                        'content-available': 1,
+                                    },
+                                },
+                            },
+                        }
+                        : {
+                            token,
+                            notification: {
+                                title,
+                                body: message,
+                            },
+                            data,
+                        }
+
+                    const response = await firebase.messaging().send(payload)
 
                     console.log('✅ Notification sent:', response)
 

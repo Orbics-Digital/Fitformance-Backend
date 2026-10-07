@@ -4,6 +4,7 @@ import logger from '../config/logger.js'
 import { compareData } from '../helpers/encryption.js'
 import { sendMail } from '../helpers/mail.js'
 import { sendNotification } from '../helpers/notification.js'
+import { getActiveSubscription } from '../helpers/stripe.js'
 import { generateToken, verifyToken } from '../helpers/token.js'
 import Otp from '../models/otp.model.js'
 import User from '../models/user.model.js'
@@ -168,11 +169,25 @@ export const login = async (req, res, next) => {
 
         logger.info(`User logged in: ${email}`)
 
+        let has_subscription = false
+        try {
+            has_subscription = Boolean(await getActiveSubscription(user._id))
+        } catch (error) {
+            logger.error(`Active subscription check failed: ${error.message}`)
+        }
+
+        const user_payload = typeof user.toObject === 'function'
+            ? user.toObject({ virtuals: true })
+            : user
+
         return res.status(200).json({
             success: true,
             message: 'Login successful.',
             data: {
-                user,
+                user: {
+                    ...user_payload,
+                    has_subscription,
+                },
                 token,
             },
         })
