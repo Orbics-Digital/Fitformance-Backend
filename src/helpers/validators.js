@@ -121,6 +121,14 @@ export const LOGOUT_VALIDATOR = Joi.object({
     })
 })
 
+export const REGISTER_DEVICE_VALIDATOR = Joi.object({
+    device_id: Joi.string().required().messages({
+        'string.empty': 'Device ID is required',
+        'any.required': 'Device ID is required',
+        'string.base': 'Device ID must be a string',
+    }),
+})
+
 export const CREATE_BET_VALIDATOR = Joi.object({
     title: Joi.string().min(2).max(100)
         .required()

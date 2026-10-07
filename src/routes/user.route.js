@@ -1,6 +1,6 @@
 import express from 'express'
-import { assignDocuments, changePassword, deleteAssignedDocument, getHome, getMediaById, getMyProfile, getTrending, getUserById, getUsers, handleTherapistAssignment, removeImage, search, toggleStatus, updateProfile, updateStatus } from '../controllers/user.controller.js'
-import { ASSIGN_THERAPIST_VALIDATOR, CHANGE_PASSWORD_VALIDATOR, UPDATE_PROFILE_VALIDATOR, UPDATE_STATUS_VALIDATOR } from '../helpers/validators.js'
+import { assignDocuments, changePassword, deleteAssignedDocument, getHome, getMediaById, getMyProfile, getTrending, getUserById, getUsers, handleTherapistAssignment, registerDevice, removeImage, search, toggleStatus, updateProfile, updateStatus } from '../controllers/user.controller.js'
+import { ASSIGN_THERAPIST_VALIDATOR, CHANGE_PASSWORD_VALIDATOR, REGISTER_DEVICE_VALIDATOR, UPDATE_PROFILE_VALIDATOR, UPDATE_STATUS_VALIDATOR } from '../helpers/validators.js'
 import { AuthVerifier, RoleGuard } from '../middleware/auth.middleware.js'
 import upload from '../middleware/upload.middleware.js'
 import validator from '../middleware/validator.js'
@@ -17,6 +17,8 @@ router.get('/get/:id', AuthVerifier, getUserById)
 router.get('/my-profile', AuthVerifier, getMyProfile)
 
 router.post('/change-password', AuthVerifier, validator(CHANGE_PASSWORD_VALIDATOR), changePassword)
+
+router.post('/device', AuthVerifier, validator(REGISTER_DEVICE_VALIDATOR), registerDevice)
 
 router.patch('/update', AuthVerifier, upload('user').single('image'), validator(UPDATE_PROFILE_VALIDATOR, { optional: true }), updateProfile)
 
