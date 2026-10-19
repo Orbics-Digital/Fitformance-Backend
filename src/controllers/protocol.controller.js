@@ -1,4 +1,5 @@
 import logger from "../config/logger.js"
+import { removeFiles } from "../helpers/folder.js"
 import { buildPaginationResponse, getPagination } from "../helpers/pagination.js"
 import Exercise from "../models/exercise.model.js"
 import Protocol from "../models/protocol.model.js"
@@ -89,19 +90,23 @@ export const getProtocolById = async (req, res, next) => {
 
 export const addProtocol = async (req, res, next) => {
     try {
-        const { body, decoded } = req
+        const { body, decoded, file } = req
         const { name } = body
 
         const exists = await Protocol.findOne({ name })
 
         if (exists) {
+            if (file?.path) removeFiles(file.path)
             return res.status(409).json({
                 success: false,
                 message: 'Protocol with the same name already exists.',
             })
         }
 
-        const protocol = new Protocol({ name })
+        const protocol = new Protocol({
+            name,
+            image: file?.path || null,
+        })
         await protocol.save()
 
         logger.info(`Protocol created by user ${decoded.id}`)
@@ -119,13 +124,14 @@ export const addProtocol = async (req, res, next) => {
 
 export const updateProtocol = async (req, res, next) => {
     try {
-        const { body, decoded, params } = req
+        const { body, decoded, params, file } = req
         const { id } = params
         const { name } = body
 
         const protocol = await Protocol.findById(id)
 
         if (!protocol) {
+            if (file?.path) removeFiles(file.path)
             return res.status(404).json({
                 success: false,
                 message: 'Protocol not found.',
@@ -135,6 +141,7 @@ export const updateProtocol = async (req, res, next) => {
         const exists = await Protocol.findOne({ name, _id: { $ne: id } })
 
         if (exists) {
+            if (file?.path) removeFiles(file.path)
             return res.status(409).json({
                 success: false,
                 message: 'Protocol with the same name already exists.',
@@ -142,6 +149,12 @@ export const updateProtocol = async (req, res, next) => {
         }
 
         protocol.name = name
+
+        if (file?.path) {
+            if (protocol.image) removeFiles(protocol.image)
+            protocol.image = file.path
+        }
+
         await protocol.save()
 
         logger.info(`Protocol ${id} updated by ${decoded.id}`)

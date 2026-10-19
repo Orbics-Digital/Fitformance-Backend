@@ -22,6 +22,7 @@ import {
     UPDATE_MUSCLE_GROUP_VALIDATOR,
 } from '../helpers/validators.js'
 import { AuthVerifier } from '../middleware/auth.middleware.js'
+import upload from '../middleware/upload.middleware.js'
 import validator from '../middleware/validator.js'
 
 const router = express.Router()
@@ -42,9 +43,9 @@ router.post('/muscle-group/create', AuthVerifier, validator(CREATE_MUSCLE_GROUP_
 
 router.patch('/muscle-group/update', AuthVerifier, validator(UPDATE_MUSCLE_GROUP_VALIDATOR), updateMuscleGroup)
 
-router.post('/category/create', AuthVerifier, validator(CREATE_LIBRARY_CATEGORY_VALIDATOR), addLibraryCategory)
+router.post('/category/create', AuthVerifier, upload('library').single('image'), validator(CREATE_LIBRARY_CATEGORY_VALIDATOR), addLibraryCategory)
 
-router.patch('/category/update', AuthVerifier, validator(UPDATE_LIBRARY_CATEGORY_VALIDATOR), updateLibraryCategory)
+router.patch('/category/update', AuthVerifier, upload('library').single('image'), validator(UPDATE_LIBRARY_CATEGORY_VALIDATOR), updateLibraryCategory)
 
 router.patch('/category/exercises', AuthVerifier, validator(SET_LIBRARY_EXERCISES_VALIDATOR), setLibraryCategoryExercises)
 

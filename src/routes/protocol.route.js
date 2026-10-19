@@ -22,6 +22,7 @@ import {
     UPDATE_PROTOCOL_WEEK_VALIDATOR,
 } from '../helpers/validators.js'
 import { AuthVerifier } from '../middleware/auth.middleware.js'
+import upload from '../middleware/upload.middleware.js'
 import validator from '../middleware/validator.js'
 
 const router = express.Router()
@@ -30,9 +31,9 @@ router.get('/get', AuthVerifier, getProtocols)
 
 router.get('/get/:id', AuthVerifier, getProtocolById)
 
-router.post('/create', AuthVerifier, validator(CREATE_PROTOCOL_VALIDATOR), addProtocol)
+router.post('/create', AuthVerifier, upload('protocol').single('image'), validator(CREATE_PROTOCOL_VALIDATOR), addProtocol)
 
-router.patch('/update/:id', AuthVerifier, validator(UPDATE_PROTOCOL_VALIDATOR), updateProtocol)
+router.patch('/update/:id', AuthVerifier, upload('protocol').single('image'), validator(UPDATE_PROTOCOL_VALIDATOR), updateProtocol)
 
 router.patch('/toggle-status/:id', AuthVerifier, toggleStatus)
 
