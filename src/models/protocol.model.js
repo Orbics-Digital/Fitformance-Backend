@@ -1,4 +1,8 @@
+import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
+
+dotenv.config()
 
 const protocol_week_schema = new mongoose.Schema({
     label: {
@@ -32,6 +36,11 @@ const protocol_schema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    image: {
+        type: String,
+        required: false,
+        default: null,
+    },
     active: {
         type: Boolean,
         default: true,
@@ -44,6 +53,22 @@ const protocol_schema = new mongoose.Schema({
 }, {
     timestamps: true,
     id: false,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
 })
+
+protocol_schema.virtual('image_url').get(function () {
+    if (!this.image) {
+        return null
+    }
+
+    if (this.image.startsWith('http')) {
+        return this.image
+    }
+
+    return `${process.env.BASE_URL}${this.image}`
+})
+
+protocol_schema.plugin(mongooseLeanVirtuals)
 
 export default mongoose.model('Protocol', protocol_schema)
