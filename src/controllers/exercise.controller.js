@@ -122,6 +122,54 @@ export const addExercise = async (req, res, next) => {
     }
 }
 
+export const updateExercise = async (req, res, next) => {
+    try {
+        const { body, decoded, files, params } = req
+        const { id } = params
+        const { title, description } = body
+
+        const file = files?.file?.[0]
+        const thumbnail = files?.thumbnail?.[0]
+
+        const rehab = await Exercise.findById(id)
+
+        if (!rehab) {
+            if (file?.path) removeFiles(file.path)
+            if (thumbnail?.path) removeFiles(thumbnail.path)
+            return res.status(404).json({
+                success: false,
+                message: 'Exercise not found.',
+            })
+        }
+
+        rehab.title = title
+        rehab.description = description.trim()
+
+        if (thumbnail?.path) {
+            if (rehab.thumbnail) removeFiles(rehab.thumbnail)
+            rehab.thumbnail = thumbnail.path
+        }
+
+        if (file?.path) {
+            if (rehab.file) removeFiles(rehab.file)
+            rehab.file = file.path
+        }
+
+        await rehab.save()
+
+        logger.info(`Exercise ${id} updated by user ${decoded.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Exercise updated successfully.',
+            data: rehab,
+        })
+    } catch (error) {
+        logger.error(`Update Exercise Error: ${error.message}`)
+        next(error)
+    }
+}
+
 export const deleteExercise = async (req, res, next) => {
     try {
         const { params, decoded } = req
