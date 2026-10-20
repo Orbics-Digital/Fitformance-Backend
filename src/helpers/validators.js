@@ -377,6 +377,8 @@ export const CREATE_REHAB_VALIDATOR = Joi.object({
         }),
 })
 
+export const UPDATE_REHAB_VALIDATOR = CREATE_REHAB_VALIDATOR
+
 export const CREATE_PLAN_VALIDATOR = Joi.object({
     user: Joi.string()
         .required()
