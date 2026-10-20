@@ -31,9 +31,9 @@ router.get('/get', AuthVerifier, getLibraries)
 
 router.get('/get/:id', AuthVerifier, getLibraryById)
 
-router.post('/create', AuthVerifier, validator(CREATE_LIBRARY_VALIDATOR), addLibrary)
+router.post('/create', AuthVerifier, upload('library').single('image'), validator(CREATE_LIBRARY_VALIDATOR), addLibrary)
 
-router.patch('/update/:id', AuthVerifier, validator(UPDATE_LIBRARY_VALIDATOR), updateLibrary)
+router.patch('/update/:id', AuthVerifier, upload('library').single('image'), validator(UPDATE_LIBRARY_VALIDATOR), updateLibrary)
 
 router.patch('/toggle-status/:id', AuthVerifier, toggleStatus)
 
@@ -43,9 +43,9 @@ router.post('/muscle-group/create', AuthVerifier, validator(CREATE_MUSCLE_GROUP_
 
 router.patch('/muscle-group/update', AuthVerifier, validator(UPDATE_MUSCLE_GROUP_VALIDATOR), updateMuscleGroup)
 
-router.post('/category/create', AuthVerifier, upload('library').single('image'), validator(CREATE_LIBRARY_CATEGORY_VALIDATOR), addLibraryCategory)
+router.post('/category/create', AuthVerifier, validator(CREATE_LIBRARY_CATEGORY_VALIDATOR), addLibraryCategory)
 
-router.patch('/category/update', AuthVerifier, upload('library').single('image'), validator(UPDATE_LIBRARY_CATEGORY_VALIDATOR), updateLibraryCategory)
+router.patch('/category/update', AuthVerifier, validator(UPDATE_LIBRARY_CATEGORY_VALIDATOR), updateLibraryCategory)
 
 router.patch('/category/exercises', AuthVerifier, validator(SET_LIBRARY_EXERCISES_VALIDATOR), setLibraryCategoryExercises)
 

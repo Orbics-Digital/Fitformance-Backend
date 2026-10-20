@@ -90,19 +90,23 @@ export const getLibraryById = async (req, res, next) => {
 
 export const addLibrary = async (req, res, next) => {
     try {
-        const { body, decoded } = req
+        const { body, decoded, file } = req
         const { name } = body
 
         const exists = await Library.findOne({ name })
 
         if (exists) {
+            if (file?.path) removeFiles(file.path)
             return res.status(409).json({
                 success: false,
                 message: 'Library with the same name already exists.',
             })
         }
 
-        const library = new Library({ name })
+        const library = new Library({
+            name,
+            image: file?.path || null,
+        })
         await library.save()
 
         logger.info(`Library created by user ${decoded.id}`)
@@ -120,13 +124,14 @@ export const addLibrary = async (req, res, next) => {
 
 export const updateLibrary = async (req, res, next) => {
     try {
-        const { body, decoded, params } = req
+        const { body, decoded, params, file } = req
         const { id } = params
         const { name } = body
 
         const library = await Library.findById(id)
 
         if (!library) {
+            if (file?.path) removeFiles(file.path)
             return res.status(404).json({
                 success: false,
                 message: 'Library not found.',
@@ -136,6 +141,7 @@ export const updateLibrary = async (req, res, next) => {
         const exists = await Library.findOne({ name, _id: { $ne: id } })
 
         if (exists) {
+            if (file?.path) removeFiles(file.path)
             return res.status(409).json({
                 success: false,
                 message: 'Library with the same name already exists.',
@@ -143,6 +149,12 @@ export const updateLibrary = async (req, res, next) => {
         }
 
         library.name = name
+
+        if (file?.path) {
+            if (library.image) removeFiles(library.image)
+            library.image = file.path
+        }
+
         await library.save()
 
         logger.info(`Library ${id} updated by ${decoded.id}`)
@@ -311,13 +323,12 @@ export const updateMuscleGroup = async (req, res, next) => {
 
 export const addLibraryCategory = async (req, res, next) => {
     try {
-        const { body, decoded, file } = req
+        const { body, decoded } = req
         const { region_id, muscle_group_id, name } = body
 
         const library = await Library.findById(region_id)
 
         if (!library) {
-            if (file?.path) removeFiles(file.path)
             return res.status(404).json({
                 success: false,
                 message: 'Library not found.',
@@ -327,7 +338,6 @@ export const addLibraryCategory = async (req, res, next) => {
         const muscle_group = findMuscleGroup(library, muscle_group_id)
 
         if (!muscle_group) {
-            if (file?.path) removeFiles(file.path)
             return res.status(404).json({
                 success: false,
                 message: 'Muscle group not found.',
@@ -339,18 +349,13 @@ export const addLibraryCategory = async (req, res, next) => {
         )
 
         if (duplicate) {
-            if (file?.path) removeFiles(file.path)
             return res.status(409).json({
                 success: false,
                 message: 'Category with the same name already exists in this muscle group.',
             })
         }
 
-        muscle_group.categories.push({
-            name,
-            image: file?.path || null,
-            exercise_ids: [],
-        })
+        muscle_group.categories.push({ name, exercise_ids: [] })
         await library.save()
 
         logger.info(`Library category added to muscle group ${muscle_group_id} by user ${decoded.id}`)
@@ -368,13 +373,12 @@ export const addLibraryCategory = async (req, res, next) => {
 
 export const updateLibraryCategory = async (req, res, next) => {
     try {
-        const { body, decoded, file } = req
+        const { body, decoded } = req
         const { region_id, muscle_group_id, category_id, name } = body
 
         const library = await Library.findById(region_id)
 
         if (!library) {
-            if (file?.path) removeFiles(file.path)
             return res.status(404).json({
                 success: false,
                 message: 'Library not found.',
@@ -384,7 +388,6 @@ export const updateLibraryCategory = async (req, res, next) => {
         const muscle_group = findMuscleGroup(library, muscle_group_id)
 
         if (!muscle_group) {
-            if (file?.path) removeFiles(file.path)
             return res.status(404).json({
                 success: false,
                 message: 'Muscle group not found.',
@@ -394,7 +397,6 @@ export const updateLibraryCategory = async (req, res, next) => {
         const category = findCategory(muscle_group, category_id)
 
         if (!category) {
-            if (file?.path) removeFiles(file.path)
             return res.status(404).json({
                 success: false,
                 message: 'Library category not found.',
@@ -408,7 +410,6 @@ export const updateLibraryCategory = async (req, res, next) => {
         )
 
         if (duplicate) {
-            if (file?.path) removeFiles(file.path)
             return res.status(409).json({
                 success: false,
                 message: 'Category with the same name already exists in this muscle group.',
@@ -416,12 +417,6 @@ export const updateLibraryCategory = async (req, res, next) => {
         }
 
         category.name = name
-
-        if (file?.path) {
-            if (category.image) removeFiles(category.image)
-            category.image = file.path
-        }
-
         await library.save()
 
         logger.info(`Library category ${category_id} updated by user ${decoded.id}`)
