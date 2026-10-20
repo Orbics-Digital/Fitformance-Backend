@@ -74,7 +74,7 @@ export const getPlanById = async (req, res, next) => {
         const plan = await Plan.findById(id)
             .populate({
                 path: "exercises.rehab",
-                select: "title file description"
+                select: "title file description thumbnail"
             })
             .populate({ path: "therapist", select: "name" })
             .populate({ path: "user", select: "name therapist" })

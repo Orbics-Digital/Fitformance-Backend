@@ -24,7 +24,7 @@ export const getHome = async (req, res, next) => {
                 .sort({ createdAt: -1 })
                 .populate({
                     path: "exercises.rehab",
-                    select: "title file description"
+                    select: "title file description thumbnail"
                 })
                 .populate({ path: "therapist", select: "name" })
                 .lean({ virtuals: true }),
@@ -150,7 +150,7 @@ export const getUserById = async (req, res, next) => {
 
             const plans = await Plan.find({ user: user._id, active: true })
                 .populate({ path: "therapist", select: "name" })
-                .populate({ path: "exercises.rehab", select: "title file" })
+                .populate({ path: "exercises.rehab", select: "title file thumbnail" })
                 .select("name notes status createdAt therapist exercises")
                 .sort({ createdAt: -1 })
                 .lean({ virtuals: true })
