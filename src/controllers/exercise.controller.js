@@ -78,20 +78,33 @@ export const getExerciseById = async (req, res, next) => {
 export const addExercise = async (req, res, next) => {
     try {
 
-        const { body, decoded, file } = req
+        const { body, decoded, files } = req
         const { title, description } = body
 
+        const file = files?.file?.[0]
+        const thumbnail = files?.thumbnail?.[0]
+
         if (!file) {
+            if (thumbnail?.path) removeFiles(thumbnail.path)
             return res.status(400).json({
                 success: false,
                 message: 'File is required.',
             })
         }
 
+        if (!thumbnail) {
+            if (file?.path) removeFiles(file.path)
+            return res.status(400).json({
+                success: false,
+                message: 'Thumbnail is required.',
+            })
+        }
+
         const rehab = new Exercise({
             title,
             description: description.trim(),
-            file: file?.path || null,
+            file: file.path,
+            thumbnail: thumbnail.path,
         })
 
         await rehab.save()
@@ -125,6 +138,10 @@ export const deleteExercise = async (req, res, next) => {
 
         if (rehab.file) {
             removeFiles(rehab.file)
+        }
+
+        if (rehab.thumbnail) {
+            removeFiles(rehab.thumbnail)
         }
 
         await Exercise.findByIdAndDelete(id)

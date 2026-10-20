@@ -11,7 +11,16 @@ router.get('/get', AuthVerifier, getExercises)
 
 router.get('/get/:id', AuthVerifier, getExerciseById)
 
-router.post('/create', AuthVerifier, upload('rehab').single('file'), validator(CREATE_REHAB_VALIDATOR), addExercise)
+router.post(
+    '/create',
+    AuthVerifier,
+    upload('rehab').fields([
+        { name: 'file', maxCount: 1 },
+        { name: 'thumbnail', maxCount: 1 },
+    ]),
+    validator(CREATE_REHAB_VALIDATOR),
+    addExercise
+)
 
 router.delete('/delete/:id', AuthVerifier, deleteExercise)
 
