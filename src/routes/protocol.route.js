@@ -3,6 +3,9 @@ import {
     addCondition,
     addProtocol,
     addWeek,
+    deleteCondition,
+    deleteProtocol,
+    deleteWeek,
     getProtocolById,
     getProtocols,
     setWeekExercises,
@@ -48,5 +51,11 @@ router.post('/week/create', AuthVerifier, validator(CREATE_PROTOCOL_WEEK_VALIDAT
 router.patch('/week/update', AuthVerifier, validator(UPDATE_PROTOCOL_WEEK_VALIDATOR), updateWeek)
 
 router.patch('/week/exercises', AuthVerifier, validator(SET_PROTOCOL_WEEK_EXERCISES_VALIDATOR), setWeekExercises)
+
+router.delete('/delete/:id', AuthVerifier, deleteProtocol)
+
+router.delete('/condition/delete', AuthVerifier, deleteCondition)
+
+router.delete('/week/delete', AuthVerifier, deleteWeek)
 
 export default router
