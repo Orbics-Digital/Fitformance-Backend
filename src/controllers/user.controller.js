@@ -5,8 +5,9 @@ import { removeFiles } from '../helpers/folder.js'
 import { sendNotification } from '../helpers/notification.js'
 import { buildPaginationResponse, getPagination } from '../helpers/pagination.js'
 import Conversation from '../models/conversation.model.js'
-import Exercise from '../models/exercise.model.js'
+import Library from '../models/library.model.js'
 import Plan from '../models/plan.model.js'
+import Protocol from '../models/protocol.model.js'
 import User from '../models/user.model.js'
 import { calculateProgress } from '../services/excercise.service.js'
 import { fetchDetails, fetchTrending, searchMulti } from '../services/tmdb.service.js'
@@ -18,8 +19,18 @@ export const getHome = async (req, res, next) => {
 
         const { decoded } = req
 
-        const [library, latest_plan, progress] = await Promise.all([
-            Exercise.find({ active: { $ne: false } }).sort({ createdAt: -1 }).limit(4).lean({ virtuals: true }),
+        const programSelect = 'name image premium createdAt'
+        const programFilter = { active: { $ne: false } }
+
+        const [libraries, protocols, latest_plan, progress] = await Promise.all([
+            Library.find(programFilter)
+                .select(programSelect)
+                .sort({ createdAt: -1 })
+                .lean({ virtuals: true }),
+            Protocol.find(programFilter)
+                .select(programSelect)
+                .sort({ createdAt: -1 })
+                .lean({ virtuals: true }),
             Plan.findOne({ user: decoded.id, active: true })
                 .sort({ createdAt: -1 })
                 .populate({
@@ -31,12 +42,19 @@ export const getHome = async (req, res, next) => {
             calculateProgress(decoded.id)
         ])
 
+        const programs = [
+            ...libraries.map((item) => ({ ...item, type: 'library' })),
+            ...protocols.map((item) => ({ ...item, type: 'protocol' })),
+        ]
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 6)
+
         logger.info(`Home listing fetched`)
 
         return res.status(200).json({
             success: true,
             message: "Home listing fetched successfully.",
-            data: { progress, library, latest_plan }
+            data: { progress, programs, latest_plan }
         })
 
     } catch (error) {
