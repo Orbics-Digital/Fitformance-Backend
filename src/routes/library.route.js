@@ -3,6 +3,9 @@ import {
     addLibrary,
     addLibraryCategory,
     addMuscleGroup,
+    deleteLibrary,
+    deleteLibraryCategory,
+    deleteMuscleGroup,
     getLibraries,
     getLibraryById,
     setLibraryCategoryExercises,
@@ -48,5 +51,11 @@ router.post('/category/create', AuthVerifier, validator(CREATE_LIBRARY_CATEGORY_
 router.patch('/category/update', AuthVerifier, validator(UPDATE_LIBRARY_CATEGORY_VALIDATOR), updateLibraryCategory)
 
 router.patch('/category/exercises', AuthVerifier, validator(SET_LIBRARY_EXERCISES_VALIDATOR), setLibraryCategoryExercises)
+
+router.delete('/delete/:id', AuthVerifier, deleteLibrary)
+
+router.delete('/muscle-group/delete', AuthVerifier, deleteMuscleGroup)
+
+router.delete('/category/delete', AuthVerifier, deleteLibraryCategory)
 
 export default router

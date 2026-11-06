@@ -488,3 +488,124 @@ export const setLibraryCategoryExercises = async (req, res, next) => {
         next(error)
     }
 }
+
+export const deleteLibrary = async (req, res, next) => {
+    try {
+        const { params, decoded } = req
+        const { id } = params
+
+        const library = await Library.findById(id)
+
+        if (!library) {
+            return res.status(404).json({
+                success: false,
+                message: 'Library not found.',
+            })
+        }
+
+        if (library.image) {
+            removeFiles(library.image)
+        }
+
+        await Library.findByIdAndDelete(id)
+
+        logger.info(`Library ${id} hard-deleted by user ${decoded.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Library deleted successfully.',
+            data: null,
+        })
+    } catch (error) {
+        logger.error(`Delete Library Error: ${error.message}`)
+        next(error)
+    }
+}
+
+export const deleteMuscleGroup = async (req, res, next) => {
+    try {
+        const { body, decoded } = req
+        const { region_id, muscle_group_id } = body
+
+        const library = await Library.findById(region_id)
+
+        if (!library) {
+            return res.status(404).json({
+                success: false,
+                message: 'Library not found.',
+            })
+        }
+
+        const muscle_group = findMuscleGroup(library, muscle_group_id)
+
+        if (!muscle_group) {
+            return res.status(404).json({
+                success: false,
+                message: 'Muscle group not found.',
+            })
+        }
+
+        muscle_group.deleteOne()
+        await library.save()
+
+        logger.info(`Muscle group ${muscle_group_id} deleted from library ${region_id} by user ${decoded.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Muscle group deleted successfully.',
+            data: library,
+        })
+    } catch (error) {
+        logger.error(`Delete Muscle Group Error: ${error.message}`)
+        next(error)
+    }
+}
+
+export const deleteLibraryCategory = async (req, res, next) => {
+    try {
+        const { body, decoded } = req
+        const { region_id, muscle_group_id, category_id } = body
+
+        const library = await Library.findById(region_id)
+
+        if (!library) {
+            return res.status(404).json({
+                success: false,
+                message: 'Library not found.',
+            })
+        }
+
+        const muscle_group = findMuscleGroup(library, muscle_group_id)
+
+        if (!muscle_group) {
+            return res.status(404).json({
+                success: false,
+                message: 'Muscle group not found.',
+            })
+        }
+
+        const category = findCategory(muscle_group, category_id)
+
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Library category not found.',
+            })
+        }
+
+        category.exercise_ids = []
+        category.deleteOne()
+        await library.save()
+
+        logger.info(`Library category ${category_id} deleted from library ${region_id} by user ${decoded.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Library category deleted successfully.',
+            data: library,
+        })
+    } catch (error) {
+        logger.error(`Delete Library Category Error: ${error.message}`)
+        next(error)
+    }
+}

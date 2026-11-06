@@ -478,3 +478,124 @@ export const setWeekExercises = async (req, res, next) => {
         next(error)
     }
 }
+
+export const deleteProtocol = async (req, res, next) => {
+    try {
+        const { params, decoded } = req
+        const { id } = params
+
+        const protocol = await Protocol.findById(id)
+
+        if (!protocol) {
+            return res.status(404).json({
+                success: false,
+                message: 'Protocol not found.',
+            })
+        }
+
+        if (protocol.image) {
+            removeFiles(protocol.image)
+        }
+
+        await Protocol.findByIdAndDelete(id)
+
+        logger.info(`Protocol ${id} hard-deleted by user ${decoded.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Protocol deleted successfully.',
+            data: null,
+        })
+    } catch (error) {
+        logger.error(`Delete Protocol Error: ${error.message}`)
+        next(error)
+    }
+}
+
+export const deleteCondition = async (req, res, next) => {
+    try {
+        const { body, decoded } = req
+        const { region_id, condition_id } = body
+
+        const protocol = await Protocol.findById(region_id)
+
+        if (!protocol) {
+            return res.status(404).json({
+                success: false,
+                message: 'Protocol not found.',
+            })
+        }
+
+        const condition = findCondition(protocol, condition_id)
+
+        if (!condition) {
+            return res.status(404).json({
+                success: false,
+                message: 'Condition not found.',
+            })
+        }
+
+        condition.deleteOne()
+        await protocol.save()
+
+        logger.info(`Condition ${condition_id} deleted from protocol ${region_id} by user ${decoded.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Condition deleted successfully.',
+            data: protocol,
+        })
+    } catch (error) {
+        logger.error(`Delete Condition Error: ${error.message}`)
+        next(error)
+    }
+}
+
+export const deleteWeek = async (req, res, next) => {
+    try {
+        const { body, decoded } = req
+        const { region_id, condition_id, week_id } = body
+
+        const protocol = await Protocol.findById(region_id)
+
+        if (!protocol) {
+            return res.status(404).json({
+                success: false,
+                message: 'Protocol not found.',
+            })
+        }
+
+        const condition = findCondition(protocol, condition_id)
+
+        if (!condition) {
+            return res.status(404).json({
+                success: false,
+                message: 'Condition not found.',
+            })
+        }
+
+        const week = findWeek(condition, week_id)
+
+        if (!week) {
+            return res.status(404).json({
+                success: false,
+                message: 'Week not found.',
+            })
+        }
+
+        week.exercise_ids = []
+        week.deleteOne()
+        await protocol.save()
+
+        logger.info(`Week ${week_id} deleted from protocol ${region_id} by user ${decoded.id}`)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Week deleted successfully.',
+            data: protocol,
+        })
+    } catch (error) {
+        logger.error(`Delete Week Error: ${error.message}`)
+        next(error)
+    }
+}
