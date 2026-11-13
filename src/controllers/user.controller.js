@@ -42,19 +42,17 @@ export const getHome = async (req, res, next) => {
             calculateProgress(decoded.id)
         ])
 
-        const programs = [
-            ...libraries.map((item) => ({ ...item, type: 'library' })),
-            ...protocols.map((item) => ({ ...item, type: 'protocol' })),
-        ]
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 6)
-
         logger.info(`Home listing fetched`)
 
         return res.status(200).json({
             success: true,
             message: "Home listing fetched successfully.",
-            data: { progress, programs, latest_plan }
+            data: {
+                progress,
+                libraries: libraries.slice(0, 8),
+                protocols: protocols.slice(0, 8),
+                latest_plan,
+            }
         })
 
     } catch (error) {
