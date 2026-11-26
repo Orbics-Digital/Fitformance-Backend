@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 import Stripe from 'stripe'
 import User from '../models/user.model.js'
 import { sendNotification } from './notification.js'
+import { clearSubscriptionCache } from './subscriptionCache.js'
 
 dotenv.config()
 
@@ -25,6 +26,8 @@ export const webhook = async (req, res) => {
         const user = await User.findOne({ stripe_customer_id: session.customer })
 
         if (user) {
+
+            clearSubscriptionCache(user._id)
 
             await sendNotification({
                 save: true,
@@ -186,6 +189,8 @@ export const cancelActiveSubscription = async (user_id) => {
     const active_subscription = subscriptions.data[0]
 
     const subscription = await stripe.subscriptions.del(active_subscription.id)
+
+    clearSubscriptionCache(user_id)
 
     return {
         id: subscription.id,

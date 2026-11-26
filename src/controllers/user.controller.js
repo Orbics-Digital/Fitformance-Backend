@@ -1,5 +1,6 @@
 import logger from '../config/logger.js'
 import { getActiveSubscription } from '../helpers/stripe.js'
+import { rememberSubscription } from '../helpers/subscriptionCache.js'
 import { compareData } from '../helpers/encryption.js'
 import { removeFiles } from '../helpers/folder.js'
 import { sendNotification } from '../helpers/notification.js'
@@ -220,6 +221,7 @@ export const getMyProfile = async (req, res, next) => {
         let has_subscription = false
         try {
             has_subscription = Boolean(await getActiveSubscription(decoded.id))
+            rememberSubscription(decoded.id, has_subscription)
         } catch (error) {
             logger.error(`Active subscription check failed: ${error.message}`)
         }

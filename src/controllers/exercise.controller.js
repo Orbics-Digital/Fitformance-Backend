@@ -1,6 +1,7 @@
 import logger from "../config/logger.js"
 import { removeFiles } from "../helpers/folder.js"
 import { buildPaginationResponse, getPagination } from "../helpers/pagination.js"
+import { getLockedExerciseIds } from "../helpers/premium.js"
 import Exercise from '../models/exercise.model.js'
 import Library from '../models/library.model.js'
 import Plan from '../models/plan.model.js'
@@ -21,6 +22,12 @@ export const getExercises = async (req, res, next) => {
 
         if (search) {
             filter.title = searchRegex(search)
+        }
+
+        // Patients without a subscription don't get premium-only exercises.
+        const locked = await getLockedExerciseIds(decoded)
+        if (locked.size) {
+            filter._id = { $nin: [...locked] }
         }
 
         if ((from && from !== "") || (to && to !== "")) {
@@ -60,6 +67,15 @@ export const getExerciseById = async (req, res, next) => {
             return res.status(404).json({
                 success: false,
                 message: 'Exercise not found.',
+            })
+        }
+
+        const locked = await getLockedExerciseIds(decoded)
+        if (locked.has(String(rehab._id))) {
+            return res.status(403).json({
+                success: false,
+                premium: true,
+                message: 'This exercise is part of a premium program. Subscribe to unlock it.',
             })
         }
 

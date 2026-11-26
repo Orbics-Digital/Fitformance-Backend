@@ -5,6 +5,7 @@ import { compareData } from '../helpers/encryption.js'
 import { sendMail } from '../helpers/mail.js'
 import { sendNotification } from '../helpers/notification.js'
 import { getActiveSubscription } from '../helpers/stripe.js'
+import { rememberSubscription } from '../helpers/subscriptionCache.js'
 import { generateToken, verifyToken } from '../helpers/token.js'
 import Otp from '../models/otp.model.js'
 import User from '../models/user.model.js'
@@ -182,6 +183,7 @@ export const login = async (req, res, next) => {
         let has_subscription = false
         try {
             has_subscription = Boolean(await getActiveSubscription(user._id))
+            rememberSubscription(user._id, has_subscription)
         } catch (error) {
             logger.error(`Active subscription check failed: ${error.message}`)
         }
