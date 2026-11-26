@@ -5,6 +5,7 @@ import { compareData } from '../helpers/encryption.js'
 import { sendMail } from '../helpers/mail.js'
 import { sendNotification } from '../helpers/notification.js'
 import { getActiveSubscription } from '../helpers/stripe.js'
+import { rememberSubscription } from '../helpers/subscriptionCache.js'
 import { generateToken, verifyToken } from '../helpers/token.js'
 import Otp from '../models/otp.model.js'
 import User from '../models/user.model.js'
@@ -55,6 +56,11 @@ export const signup = async (req, res, next) => {
             role: role || ROLES.USER,
         }
 
+        // Patients are approved automatically; practitioners still need admin review of their documents.
+        if (payload.role === ROLES.USER) {
+            payload.status = PROFILE_STATUS.APPROVED
+        }
+
         if (file && file.path) {
             payload.image = file.path
         }
@@ -66,12 +72,12 @@ export const signup = async (req, res, next) => {
 
         const title =
             user?.role === ROLES.USER
-                ? 'New Patient Awaiting Review'
+                ? 'New Patient Registered'
                 : 'New Practitioner Awaiting Review'
 
         const message =
             user?.role === ROLES.USER
-                ? `A new patient, ${user.name} (${user.email}), has just registered. Please review their profile.`
+                ? `A new patient, ${user.name} (${user.email}), has just registered.`
                 : `A new practitioner, ${user.name} (${user.email}), has just registered. Please review their profile.`
 
         sendNotification({
@@ -177,6 +183,7 @@ export const login = async (req, res, next) => {
         let has_subscription = false
         try {
             has_subscription = Boolean(await getActiveSubscription(user._id))
+            rememberSubscription(user._id, has_subscription)
         } catch (error) {
             logger.error(`Active subscription check failed: ${error.message}`)
         }

@@ -5,17 +5,28 @@ const connectSocket = async (io) => {
     try {
 
         io.on('connection', async (socket) => {
+            try {
 
-            let token = socket.handshake.query.token
-            token = token.split(' ')[1]
-            let decoded = await verifyToken(token)
+                const raw = socket.handshake.query?.token || ''
+                const token = String(raw).split(' ').pop()
+                const decoded = token ? await verifyToken(token) : null
 
-            if (decoded) {
+                if (!decoded?.id) {
+                    socket.disconnect(true)
+                    return
+                }
+
                 socket.user_id = decoded.id
-                logger.info("Socket Connection Successfully Created", socket.id, socket.user_id)
-                // socketController(socket, io)
-            }
 
+                // Each user joins a room named after their id so the server can reach all of their open sessions.
+                socket.join(String(decoded.id))
+
+                logger.info(`Socket connected | Socket: ${socket.id} | User: ${socket.user_id}`)
+
+            } catch (error) {
+                logger.warn(`Socket auth failed | Socket: ${socket.id} | ${error.message}`)
+                socket.disconnect(true)
+            }
         })
 
     } catch (e) {

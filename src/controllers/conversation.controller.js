@@ -1,6 +1,45 @@
 import logger from "../config/logger.js"
 import Conversation from "../models/conversation.model.js"
 import Message from "../models//message.model.js"
+import User from "../models/user.model.js"
+import { sendNotification } from "../helpers/notification.js"
+import { getIO } from "../helpers/socket.js"
+
+const notifyParticipants = async (conversation, message, sender_id) => {
+
+    const recipients = conversation.participants
+        .map(id => id.toString())
+        .filter(id => id !== sender_id.toString())
+
+    if (!recipients.length) return
+
+    const sender = await User.findById(sender_id).select("_id name image")
+    const conversation_id = conversation._id.toString()
+
+    // Live update for anyone who has the app or portal open.
+    try {
+        const io = getIO()
+        const payload = {
+            conversation: conversation_id,
+            message: { ...message.toObject(), sender: sender?.toObject() || { _id: sender_id } }
+        }
+        recipients.forEach(id => io.to(id).emit("new_message", payload))
+    } catch (error) {
+        logger.warn(`Socket emit skipped: ${error.message}`)
+    }
+
+    const preview = (message.content || "").trim()
+
+    // Push only: saving every chat message would flood the notifications list.
+    await sendNotification({
+        title: `New message from ${sender?.name || "your contact"}`,
+        message: preview.length > 120 ? `${preview.slice(0, 117)}...` : (preview || "You have a new message."),
+        metadata: { type: "message", id: conversation_id, title: sender?.name || "" },
+        user_ids: recipients,
+        save: false
+    })
+
+}
 
 export const getConversations = async (req, res, next) => {
     try {
@@ -109,6 +148,10 @@ export const sendMessage = async (req, res, next) => {
         logger.info(
             `Message sent | Conversation: ${conversation._id} | Sender: ${decoded.id}`
         )
+
+        // Tell the other participants. A failed notification must not fail the request.
+        notifyParticipants(conversation, message, decoded.id)
+            .catch(error => logger.error(`Message notification error: ${error.message}`))
 
         return res.status(201).json({
             success: true,
