@@ -13,3 +13,6 @@ logs/
 # uploads/
 
 src/config/fitformance.json
+
+# macOS
+.DS_Store
