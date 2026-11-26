@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
 import logger from "../config/logger.js"
 import { buildPaginationResponse, getPagination } from "../helpers/pagination.js"
+import { sendNotification } from "../helpers/notification.js"
 import Plan from "../models/plan.model.js"
 import User from "../models/user.model.js"
 import { calculateProgress } from "../services/excercise.service.js"
@@ -156,6 +157,15 @@ export const addPlan = async (req, res, next) => {
 
         logger.info(`Plan created by therapist ${therapist} for user ${user._id}`)
 
+        // Let the patient know a new plan is ready. A failed push must not fail the request.
+        const practitioner = await User.findById(therapist).select("name")
+        sendNotification({
+            title: "New Plan Assigned",
+            message: `${practitioner?.name || "Your practitioner"} has assigned you a new plan: ${name}.`,
+            metadata: { type: "plan", id: plan._id.toString() },
+            user_ids: [user._id]
+        }).catch(error => logger.error(`Plan notification error: ${error.message}`))
+
         return res.status(201).json({
             success: true,
             message: "Plan created successfully"
@@ -165,6 +175,78 @@ export const addPlan = async (req, res, next) => {
         await session.abortTransaction()
         session.endSession()
         logger.error(`Add Plan Error: ${error.message}`)
+        next(error)
+    }
+}
+
+export const updatePlan = async (req, res, next) => {
+    try {
+
+        const { params, body, decoded } = req
+        const { id } = params
+        const { name, notes, exercises } = body
+
+        if (decoded.role !== ROLES.THERAPIST) {
+            return res.status(403).json({
+                success: false,
+                message: "Only practitioners can update plans"
+            })
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid plan ID"
+            })
+        }
+
+        const plan = await Plan.findById(id)
+
+        if (!plan || !plan.active) {
+            return res.status(404).json({
+                success: false,
+                message: "Plan not found"
+            })
+        }
+
+        if (plan.therapist.toString() !== decoded.id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "You can only update plans you created"
+            })
+        }
+
+        if (plan.status === PLAN_STATUS.COMPLETED) {
+            return res.status(400).json({
+                success: false,
+                message: "Completed plans cannot be edited"
+            })
+        }
+
+        plan.name = name
+        plan.notes = notes
+        plan.exercises = exercises
+        await plan.save()
+
+        logger.info(`Plan ${plan._id} updated by therapist ${decoded.id}`)
+
+        // Let the patient know their plan changed. A failed push must not fail the request.
+        const practitioner = await User.findById(decoded.id).select("name")
+        sendNotification({
+            title: "Plan Updated",
+            message: `${practitioner?.name || "Your practitioner"} has updated your plan: ${name}.`,
+            metadata: { type: "plan", id: plan._id.toString() },
+            user_ids: [plan.user]
+        }).catch(error => logger.error(`Plan notification error: ${error.message}`))
+
+        return res.status(200).json({
+            success: true,
+            message: "Plan updated successfully",
+            data: plan
+        })
+
+    } catch (error) {
+        logger.error(`Update Plan Error: ${error.message}`)
         next(error)
     }
 }

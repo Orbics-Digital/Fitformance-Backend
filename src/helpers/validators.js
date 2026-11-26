@@ -454,6 +454,11 @@ export const CREATE_PLAN_VALIDATOR = Joi.object({
 
 })
 
+// Same rules as creating a plan, but the patient a plan belongs to cannot be changed.
+export const UPDATE_PLAN_VALIDATOR = CREATE_PLAN_VALIDATOR.keys({
+    user: Joi.any().strip()
+})
+
 export const CREATE_PACKAGE_VALIDATOR = Joi.object({
     name: Joi.string().min(2).max(100)
         .required()
