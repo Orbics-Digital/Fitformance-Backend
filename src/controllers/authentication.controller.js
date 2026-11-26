@@ -55,6 +55,11 @@ export const signup = async (req, res, next) => {
             role: role || ROLES.USER,
         }
 
+        // Patients are approved automatically; practitioners still need admin review of their documents.
+        if (payload.role === ROLES.USER) {
+            payload.status = PROFILE_STATUS.APPROVED
+        }
+
         if (file && file.path) {
             payload.image = file.path
         }
@@ -66,12 +71,12 @@ export const signup = async (req, res, next) => {
 
         const title =
             user?.role === ROLES.USER
-                ? 'New Patient Awaiting Review'
+                ? 'New Patient Registered'
                 : 'New Practitioner Awaiting Review'
 
         const message =
             user?.role === ROLES.USER
-                ? `A new patient, ${user.name} (${user.email}), has just registered. Please review their profile.`
+                ? `A new patient, ${user.name} (${user.email}), has just registered.`
                 : `A new practitioner, ${user.name} (${user.email}), has just registered. Please review their profile.`
 
         sendNotification({
