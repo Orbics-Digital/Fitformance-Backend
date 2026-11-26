@@ -448,7 +448,7 @@ export const handleTherapistAssignment = async (req, res, next) => {
         if (!therapist) {
             return res.status(404).json({
                 success: false,
-                message: 'Therapist not found.',
+                message: 'Practitioner not found.',
             })
         }
 
@@ -470,8 +470,8 @@ export const handleTherapistAssignment = async (req, res, next) => {
             await user.save()
 
             await sendNotification({
-                title: "Therapist Removed",
-                message: "A therapist has been removed from your account.",
+                title: "Practitioner Removed",
+                message: "A practitioner has been removed from your account.",
                 user_ids: [user._id],
                 metadata: { type: "therapist_removed", therapist: therapist._id },
                 push: true
@@ -512,8 +512,8 @@ export const handleTherapistAssignment = async (req, res, next) => {
             }
 
             await sendNotification({
-                title: "Therapist Assigned",
-                message: "A therapist has been assigned to your account. Communication is now available via the application.",
+                title: "Practitioner Assigned",
+                message: "A practitioner has been assigned to your account. Communication is now available via the application.",
                 user_ids: [user._id],
                 metadata: { type: "therapist_assigned", therapist: therapist._id },
                 push: true
@@ -555,7 +555,7 @@ export const assignDocuments = async (req, res, next) => {
         if (!therapist) {
             return res.status(404).json({
                 success: false,
-                message: 'Therapist not found.',
+                message: 'Practitioner not found.',
             })
         }
 
@@ -593,7 +593,7 @@ export const assignDocuments = async (req, res, next) => {
 
         await sendNotification({
             title: "You’ve Got New Documents 📄",
-            message: "Your therapist just shared some documents with you. Please review them.",
+            message: "Your practitioner just shared some documents with you. Please review them.",
             user_ids: [user._id],
             metadata: {
                 type: "document_assignment",
@@ -625,7 +625,7 @@ export const deleteAssignedDocument = async (req, res, next) => {
         if (!therapist) {
             return res.status(404).json({
                 success: false,
-                message: 'Therapist not found.',
+                message: 'Practitioner not found.',
             })
         }
 

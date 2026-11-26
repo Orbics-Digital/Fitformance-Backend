@@ -583,13 +583,13 @@ export const ASSIGN_THERAPIST_VALIDATOR = Joi.object({
         .required()
         .custom((value, helpers) => {
             if (!mongoose.Types.ObjectId.isValid(value)) {
-                return helpers.message(`Invalid Therapist ID: ${value}`)
+                return helpers.message(`Invalid Practitioner ID: ${value}`)
             }
             return value
         })
         .messages({
-            'any.required': 'Therapist ID is required.',
-            'string.empty': 'Therapist ID cannot be empty.'
+            'any.required': 'Practitioner ID is required.',
+            'string.empty': 'Practitioner ID cannot be empty.'
         }),
     user: Joi.string()
         .required()
